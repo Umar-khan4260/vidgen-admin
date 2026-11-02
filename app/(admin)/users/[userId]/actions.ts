@@ -2,9 +2,11 @@
 
 import { adminDb, FieldValue } from '@/lib/firebase-admin';
 import { revalidatePath } from 'next/cache';
+import { requireAdmin } from '@/lib/admin-session';
 
 export async function adjustCreditsAction(userId: string, amount: number, reason: string) {
   try {
+    await requireAdmin();
     if (!userId) throw new Error('User ID is required');
     if (!amount || isNaN(amount)) throw new Error('A valid credit amount is required');
 
@@ -38,6 +40,7 @@ export async function adjustCreditsAction(userId: string, amount: number, reason
 
 export async function toggleBlockAction(userId: string, isBlocked: boolean, reason?: string) {
   try {
+    await requireAdmin();
     if (!userId) throw new Error('User ID is required');
 
     const userRef = adminDb.collection('users').doc(userId);

@@ -251,7 +251,7 @@ async function DashboardContent() {
             </div>
             
             <p className="text-xs text-slate-400 leading-relaxed">
-              Configured in <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded">admin/config</code>. New users automatically receive this balance upon first launch.
+              New users automatically receive this balance upon first launch.
             </p>
 
             <div className="mt-5 p-4 rounded-xl bg-slate-800/40 border border-slate-700/50">
