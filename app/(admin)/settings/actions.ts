@@ -2,6 +2,7 @@
 
 import { adminDb, FieldValue } from '@/lib/firebase-admin';
 import { revalidatePath } from 'next/cache';
+import { requireAdmin } from '@/lib/admin-session';
 
 export async function updateSystemConfigAction(data: {
   maintenanceMode: boolean;
@@ -12,6 +13,7 @@ export async function updateSystemConfigAction(data: {
   disabledModels?: string[];
 }) {
   try {
+    await requireAdmin();
     const configRef = adminDb.collection('admin').doc('config');
 
     const updatePayload: Record<string, any> = {
