@@ -6,6 +6,20 @@
 export const ADMIN_SESSION_COOKIE = 'vg_admin_session';
 export const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
 
+export function shouldUseSecureCookie(requestHeaders?: Headers | null): boolean {
+  if (process.env.NODE_ENV === 'development') return false;
+  if (!requestHeaders) return process.env.NODE_ENV === 'production';
+  const forwardedProtocol = requestHeaders.get('x-forwarded-proto');
+  const protocol = forwardedProtocol?.split(',')[0].trim().toLowerCase();
+  if (protocol) return protocol === 'https';
+
+  const origin = requestHeaders.get('origin') ?? requestHeaders.get('referer') ?? '';
+  if (origin.startsWith('https://')) return true;
+  if (origin.startsWith('http://')) return false;
+
+  return process.env.NODE_ENV === 'production';
+}
+
 function bytesToHex(bytes: Uint8Array): string {
   let hex = '';
   for (const b of bytes) hex += b.toString(16).padStart(2, '0');

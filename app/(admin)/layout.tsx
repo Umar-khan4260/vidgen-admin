@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LayoutDashboard, Users, Settings, Sparkles, Activity, LogOut } from "lucide-react";
+import { logoutAction } from "./actions";
 
 /** Shell for all authenticated admin pages: fixed sidebar + internally
  * scrolling content column. The old top header bar ("Production Control
@@ -57,13 +58,15 @@ export default function AdminLayout({
 
         {/* Bottom: Sign out + Database status */}
         <div className="p-4 border-t border-slate-800/80 space-y-3">
-          <Link
-            href="/logout"
-            className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/70 transition-all group"
-          >
-            <LogOut className="w-4 h-4 text-slate-400 group-hover:text-rose-400 transition-colors" />
-            <span>Sign out</span>
-          </Link>
+          <form action={logoutAction} className="w-full">
+            <button
+              type="submit"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/70 transition-all group cursor-pointer text-left"
+            >
+              <LogOut className="w-4 h-4 text-slate-400 group-hover:text-rose-400 transition-colors" />
+              <span>Sign out</span>
+            </button>
+          </form>
 
           <div className="rounded-xl bg-slate-800/40 border border-slate-700/50 p-3 space-y-2">
             <div className="flex items-center justify-between text-xs">

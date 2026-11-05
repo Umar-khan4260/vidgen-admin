@@ -10,8 +10,15 @@ export const metadata: Metadata = {
   title: 'Sign in — VidGen AI Admin',
 };
 
-export default async function LoginPage() {
-  if (await isAdminAuthenticated()) redirect('/');
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await searchParams;
+  const destination = next?.startsWith('/') && !next.startsWith('//') ? next : '/';
+
+  if (await isAdminAuthenticated()) redirect(destination);
 
   return (
     <div className="h-full flex items-center justify-center p-6">
@@ -32,7 +39,7 @@ export default async function LoginPage() {
             </div>
           </div>
 
-          <LoginForm />
+          <LoginForm destination={destination} />
 
           <div className="mt-6 flex items-center justify-center gap-2 text-[11px] text-slate-500">
             <ShieldCheck className="w-3.5 h-3.5 text-slate-600" />

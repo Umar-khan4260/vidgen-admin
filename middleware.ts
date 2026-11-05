@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ADMIN_SESSION_COOKIE, verifySessionToken } from '@/lib/session-shared';
 
-const PUBLIC_PATHS = new Set(['/login']);
+const PUBLIC_PATHS = new Set(['/login', '/api/login', '/logout']);
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -14,6 +14,7 @@ export async function middleware(req: NextRequest) {
     const url = req.nextUrl.clone();
     url.pathname = '/login';
     url.search = '';
+    url.searchParams.set('next', `${pathname}${req.nextUrl.search}`);
     return NextResponse.redirect(url);
   }
 
