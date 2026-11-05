@@ -1,8 +1,9 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import {
   ADMIN_SESSION_COOKIE,
   SESSION_TTL_MS,
   createSessionToken,
+  shouldUseSecureCookie,
   verifySessionToken,
 } from './session-shared';
 
@@ -34,10 +35,12 @@ export async function requireAdmin(): Promise<void> {
 /** Issues a fresh signed session cookie (12h expiry). */
 export async function startAdminSession(): Promise<void> {
   const jar = await cookies();
+  const requestHeaders = await headers();
+
   jar.set(ADMIN_SESSION_COOKIE, await createSessionToken(adminSessionSecret()), {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: shouldUseSecureCookie(requestHeaders),
     path: '/',
     maxAge: SESSION_TTL_MS / 1000,
   });

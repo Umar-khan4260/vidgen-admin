@@ -1,17 +1,40 @@
 'use client';
 
-import { useActionState } from 'react';
-import { Sparkles } from 'lucide-react';
-import { loginAction, type LoginState } from './actions';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
-export default function LoginForm() {
-  const [state, formAction, pending] = useActionState<LoginState, FormData>(
-    loginAction,
-    { error: null }
-  );
+export default function LoginForm({ destination = '/' }: { destination?: string }) {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(formData: FormData) {
+    setPending(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        body: formData,
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.error || 'Invalid email or password.');
+        return;
+      }
+
+      window.location.href = result.redirectTo;
+    } catch {
+      setError('Unable to sign in. Please try again.');
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
-    <form action={formAction} className="space-y-5">
+    <form action={handleSubmit} className="space-y-5">
+      <input type="hidden" name="next" value={destination} />
       <div className="space-y-2">
         <label htmlFor="email" className="block text-sm font-medium text-slate-300">
           Admin Email
@@ -42,9 +65,9 @@ export default function LoginForm() {
         />
       </div>
 
-      {state.error && (
+      {error && (
         <p className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2.5 text-sm text-rose-300">
-          {state.error}
+          {error}
         </p>
       )}
 
