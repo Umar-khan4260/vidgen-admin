@@ -46,6 +46,12 @@ async function getDashboardData() {
     const configSnap = await adminDb.collection('admin').doc('config').get();
     const config: AdminConfig = configSnap.exists ? (configSnap.data() as AdminConfig) : {};
 
+    const plansSnap = await adminDb.collection('plans').get();
+    const plansMap: Record<string, any> = {};
+    plansSnap.forEach(doc => {
+      plansMap[doc.id] = doc.data();
+    });
+
     const totalUsers = users.length;
     const blockedUsers = users.filter(u => u.isBlocked).length;
     const activeUsers = totalUsers - blockedUsers;
@@ -74,6 +80,7 @@ async function getDashboardData() {
       tiers,
       recentUsers,
       config,
+      plansMap,
     };
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
@@ -86,6 +93,7 @@ async function getDashboardData() {
       tiers: { free: 0, weekly: 0, monthly: 0, lifetime: 0 },
       recentUsers: [],
       config: {},
+      plansMap: {},
     };
   }
 }
@@ -212,32 +220,44 @@ async function DashboardContent() {
               <Layers className="w-5 h-5 text-indigo-400" />
               <h2 className="text-base font-semibold text-white">Subscription Tiers Breakdown</h2>
             </div>
-            <span className="text-xs text-slate-400">{data.totalUsers} registered users</span>
+            <Link
+              href="/plans"
+              className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1"
+            >
+              <span>Manage Plans</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50">
               <div className="text-xs text-slate-400 font-medium">Free Tier</div>
               <div className="text-2xl font-bold text-white mt-1">{data.tiers.free}</div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Pay-as-you-go</div>
+              <div className="text-[11px] text-slate-400 mt-0.5">Starter / Pay-as-you-go</div>
             </div>
 
             <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
               <div className="text-xs text-indigo-300 font-medium">Weekly Plan</div>
               <div className="text-2xl font-bold text-indigo-200 mt-1">{data.tiers.weekly}</div>
-              <div className="text-[11px] text-indigo-400/80 mt-0.5">500 credits / wk</div>
+              <div className="text-[11px] text-indigo-400/80 mt-0.5">
+                {(data.plansMap?.weekly?.credits ?? 500).toLocaleString()} credits • ${data.plansMap?.weekly?.price ?? 4.99}
+              </div>
             </div>
 
             <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20">
               <div className="text-xs text-violet-300 font-medium">Monthly Plan</div>
               <div className="text-2xl font-bold text-violet-200 mt-1">{data.tiers.monthly}</div>
-              <div className="text-[11px] text-violet-400/80 mt-0.5">2,000 credits / mo</div>
+              <div className="text-[11px] text-violet-400/80 mt-0.5">
+                {(data.plansMap?.monthly?.credits ?? 2000).toLocaleString()} credits • ${data.plansMap?.monthly?.price ?? 14.99}
+              </div>
             </div>
 
             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
               <div className="text-xs text-amber-300 font-medium">Lifetime Pack</div>
               <div className="text-2xl font-bold text-amber-200 mt-1">{data.tiers.lifetime}</div>
-              <div className="text-[11px] text-amber-400/80 mt-0.5">7,500 credits pack</div>
+              <div className="text-[11px] text-amber-400/80 mt-0.5">
+                {(data.plansMap?.lifetime?.credits ?? 7500).toLocaleString()} credits • ${data.plansMap?.lifetime?.price ?? 49.99}
+              </div>
             </div>
           </div>
         </div>

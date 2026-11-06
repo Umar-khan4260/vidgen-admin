@@ -10,10 +10,10 @@ interface Props {
   isBlocked: boolean;
   blockReason: string | null;
   currentCredits: number;
-  currentTier: string;
+  currentTier?: string;
 }
 
-export default function UserDetailClient({ userId, isBlocked, blockReason, currentCredits }: Props) {
+export default function UserDetailClient({ userId, isBlocked, blockReason, currentCredits, currentTier = 'free' }: Props) {
   const router = useRouter();
 
   // Credit adjustment state
