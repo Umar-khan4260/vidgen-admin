@@ -35,6 +35,32 @@ interface AdminConfig {
   freeCredits?: number;
 }
 
+/** Read the remaining platform balance from the Kie.ai API. */
+async function getKieCredits(): Promise<number | null> {
+  const apiKey = process.env.KIE_API_KEY;
+  if (!apiKey) {
+    console.error('KIE_API_KEY is not configured');
+    return null;
+  }
+  try {
+    const res = await fetch('https://api.kie.ai/api/v1/chat/credit', {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${apiKey}` },
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      console.error('Kie credit request failed with status:', res.status);
+      return null;
+    }
+    const json = await res.json();
+    const value = typeof json?.data === 'number' ? json.data : Number(json?.data);
+    return Number.isFinite(value) ? value : null;
+  } catch (error) {
+    console.error('Kie credit fetch error:', error);
+    return null;
+  }
+}
+
 async function getDashboardData() {
   try {
     const usersSnap = await adminDb.collection('users').get();
@@ -47,7 +73,7 @@ async function getDashboardData() {
     const config: AdminConfig = configSnap.exists ? (configSnap.data() as AdminConfig) : {};
 
     const plansSnap = await adminDb.collection('plans').get();
-    const plansMap: Record<string, any> = {};
+    const plansMap: Record<string, { credits?: number; price?: number }> = {};
     plansSnap.forEach(doc => {
       plansMap[doc.id] = doc.data();
     });
@@ -71,6 +97,8 @@ async function getDashboardData() {
       return timeB - timeA;
     }).slice(0, 6);
 
+    const kieCredits = await getKieCredits();
+
     return {
       totalUsers,
       blockedUsers,
@@ -81,6 +109,7 @@ async function getDashboardData() {
       recentUsers,
       config,
       plansMap,
+      kieCredits,
     };
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
@@ -94,6 +123,7 @@ async function getDashboardData() {
       recentUsers: [],
       config: {},
       plansMap: {},
+      kieCredits: null,
     };
   }
 }
@@ -153,20 +183,24 @@ async function DashboardContent() {
           </div>
         </div>
 
-        {/* Total Credits in Circulation */}
+        {/* Kie.ai Platform Credits Remaining */}
         <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">User Credits Balance</span>
+            <span className="text-xs font-medium text-slate-400">Kie Platform Credits</span>
             <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
               <Coins className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-4">
             <div className="text-3xl font-bold text-white tracking-tight">
-              {data.totalCreditsInCirculation.toLocaleString()}
+              {data.kieCredits === null
+                ? '—'
+                : data.kieCredits.toLocaleString('en-US', { maximumFractionDigits: 2 })}
             </div>
-            <div className="mt-1 text-xs text-slate-400">
-              Circulating across all accounts
+            <div className={`mt-1 text-xs ${data.kieCredits === null ? 'text-rose-400' : 'text-slate-400'}`}>
+              {data.kieCredits === null
+                ? 'Unable to fetch Kie balance'
+                : 'Remaining on kie.ai platform'}
             </div>
           </div>
         </div>
