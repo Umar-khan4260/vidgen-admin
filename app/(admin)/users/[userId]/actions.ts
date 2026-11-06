@@ -125,3 +125,163 @@ export async function assignPlanAction(userId: string, tier: 'weekly' | 'monthly
     return { success: false, error: error.message || 'Failed to assign plan' };
   }
 }
+
+/** Plan configuration interface for admin panel */
+export interface PlanConfig {
+  tier: 'weekly' | 'monthly' | 'lifetime';
+  credits: number;
+  days: number | null;
+  price: number;
+  isActive: boolean;
+  displayName: string;
+  productId: string;
+}
+
+/** Get all plan configurations from Firestore. */
+export async function fetchPlanConfigsAction(): Promise<PlanConfig[]> {
+  try {
+    await requireAdmin();
+    const plansRef = adminDb.collection('plans');
+    const snapshot = await plansRef.get();
+    const plans: PlanConfig[] = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      plans.push({
+        tier: data.tier || 'weekly',
+        credits: Number(data.credits) || 0,
+        days: data.days,
+        price: data.price ?? 0,
+        isActive: data.isActive !== false,
+        displayName: data.displayName || `${(data.tier || 'weekly')[0].toUpperCase() + (data.tier || 'weekly').slice(1)} Plan`,
+        productId: data.productId || getProductIdFromTier(data.tier || 'weekly'),
+      });
+    });
+    // Fallback to default plans if Firestore collection is empty
+    if (plans.length === 0) {
+      return [
+        {
+          tier: 'weekly',
+          credits: 500,
+          days: 7,
+          price: 4.99,
+          isActive: true,
+          displayName: 'Weekly Plan',
+          productId: 'com.vidgen.subscription.weekly',
+        },
+        {
+          tier: 'monthly',
+          credits: 2000,
+          days: 30,
+          price: 9.99,
+          isActive: true,
+          displayName: 'Monthly Plan',
+          productId: 'com.vidgen.subscription.monthly',
+        },
+        {
+          tier: 'lifetime',
+          credits: 7500,
+          days: null,
+          price: 49.99,
+          isActive: true,
+          displayName: 'Lifetime Plan',
+          productId: 'com.vidgen.credits.pack.7500',
+        },
+      ];
+    }
+    return plans;
+  } catch (error: any) {
+    console.error('fetchPlanConfigsAction error:', error);
+    return [];
+  }
+}
+
+/** Get product ID from tier name (fallback) */
+function getProductIdFromTier(tier: string): string {
+  const map: Record<string, string> = {
+    weekly: 'com.vidgen.subscription.weekly',
+    monthly: 'com.vidgen.subscription.monthly',
+    lifetime: 'com.vidgen.credits.pack.7500',
+  };
+  return map[tier] || 'com.vidgen.subscription.weekly';
+}
+
+/** Update a plan configuration in Firestore. */
+export async function updatePlanConfigAction(plan: PlanConfig) {
+  try {
+    await requireAdmin();
+    if (!plan.tier) throw new Error('Plan tier is required');
+
+    const productRef = adminDb.collection('plans').doc(plan.tier);
+    await productRef.set({
+      tier:        plan.tier,
+      credits:     plan.credits,
+      days:        plan.days,
+      price:       plan.price,
+      isActive:    plan.isActive,
+      displayName:  plan.displayName,
+      productId:   plan.productId,
+      updatedAt:   FieldValue.serverTimestamp(),
+    });
+
+    revalidatePath(`/users/${plan.tier}`);
+    revalidatePath('/users');
+    revalidatePath('/');
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('updatePlanConfigAction error:', error);
+    return { success: false, error: error.message || 'Failed to update plan config' };
+  }
+}
+
+/** Create a new plan configuration in Firestore. */
+export async function createPlanConfigAction(plan: PlanConfig) {
+  try {
+    await requireAdmin();
+    if (!plan.tier) throw new Error('Plan tier is required');
+
+    const productRef = adminDb.collection('plans').doc(plan.tier);
+    // Check if plan already exists
+    const existing = await productRef.get();
+    if (existing.exists) {
+      return updatePlanConfigAction(plan);
+    }
+
+    await productRef.set({
+      tier:        plan.tier,
+      credits:     plan.credits,
+      days:        plan.days,
+      price:       plan.price,
+      isActive:    plan.isActive,
+      displayName:  plan.displayName,
+      productId:   plan.productId,
+      createdAt:   FieldValue.serverTimestamp(),
+    });
+
+    revalidatePath('/users');
+    revalidatePath('/');
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('createPlanConfigAction error:', error);
+    return { success: false, error: error.message || 'Failed to create plan config' };
+  }
+}
+
+/** Delete a plan configuration from Firestore. */
+export async function deletePlanConfigAction(tier: PlanConfig['tier']) {
+  try {
+    await requireAdmin();
+    if (!tier) throw new Error('Plan tier is required');
+
+    await adminDb.collection('plans').doc(tier).delete();
+    revalidatePath('/plans');
+    revalidatePath('/users');
+    revalidatePath('/');
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('deletePlanConfigAction error:', error);
+    return { success: false, error: error.message || 'Failed to delete plan config' };
+  }
+}

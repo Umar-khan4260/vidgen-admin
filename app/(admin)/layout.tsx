@@ -1,15 +1,11 @@
 import Link from "next/link";
-import { LayoutDashboard, Users, Settings, Sparkles, Activity, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, Settings, Sparkles, Activity, LogOut, Calendar } from "lucide-react";
 import { logoutAction } from "./actions";
 
 /** Shell for all authenticated admin pages: fixed sidebar + internally
  * scrolling content column. The old top header bar ("Production Control
  * Center" / "Phase 5 Admin Panel") was removed on request. */
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="h-full flex overflow-hidden">
       {/* Left Sidebar */}
@@ -43,7 +39,15 @@ export default function AdminLayout({
               className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/70 transition-all group"
             >
               <Users className="w-4 h-4 text-slate-400 group-hover:text-indigo-400 transition-colors" />
-              <span>Users &amp; Credits</span>
+              <span>Users & Credits</span>
+            </Link>
+
+            <Link
+              href="/plans"
+              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/70 transition-all group"
+            >
+              <Calendar className="w-4 h-4 text-slate-400 group-hover:text-indigo-400 transition-colors" />
+              <span>Plan Management</span>
             </Link>
 
             <Link

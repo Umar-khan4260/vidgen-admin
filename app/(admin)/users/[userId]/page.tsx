@@ -164,6 +164,7 @@ export default async function UserDetailPage({ params }: Props) {
         isBlocked={Boolean(userData.isBlocked)}
         blockReason={userData.blockReason || null}
         currentCredits={Number(userData.credits) || 0}
+        currentTier={userData.subscriptionTier || 'free'}
       />
 
       {/* Linked Devices & Accounts Info */}
