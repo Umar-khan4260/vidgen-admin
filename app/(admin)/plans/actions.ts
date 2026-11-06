@@ -93,6 +93,18 @@ export async function getPlansAction(): Promise<PlanData[]> {
     await requireAdmin();
     const snapshot = await adminDb.collection('plans').orderBy('sortOrder', 'asc').get();
     if (snapshot.empty) {
+      // Auto-seed the Firestore `plans` collection on first visit so the
+      // collection actually exists in Firebase instead of only in-memory.
+      const batch = adminDb.batch();
+      for (const plan of DEFAULT_PLANS) {
+        const ref = adminDb.collection('plans').doc(plan.id);
+        batch.set(ref, {
+          ...plan,
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        }, { merge: true });
+      }
+      await batch.commit();
       return DEFAULT_PLANS;
     }
     return snapshot.docs
