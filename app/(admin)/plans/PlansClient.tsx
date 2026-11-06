@@ -10,7 +10,6 @@ import {
 import {
   Coins,
   Calendar,
-  ShieldCheck,
   Layers,
   Edit3,
   CheckCircle2,
@@ -143,7 +142,7 @@ export default function PlansClient({ initialPlans }: Props) {
       )}
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">Total Plans</span>
@@ -185,7 +184,7 @@ export default function PlansClient({ initialPlans }: Props) {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5">
+        {/* <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">StoreKit Product Sync</span>
             <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400">
@@ -199,7 +198,7 @@ export default function PlansClient({ initialPlans }: Props) {
             </div>
             <div className="text-xs text-slate-400 mt-1 font-mono">com.vidgen.*</div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Plans Cards Grid */}
