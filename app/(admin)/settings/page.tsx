@@ -13,7 +13,6 @@ export default async function SettingsPage() {
     defaultCredits: Number(config.defaultCredits ?? config.freeCredits ?? 0) || 0,
     imageCreditFloor: Number(config.imageCreditFloor) || 40,
     videoCreditFloor: Number(config.videoCreditFloor) || 80,
-    disabledModels: Array.isArray(config.disabledModels) ? config.disabledModels : [],
   };
 
   return (

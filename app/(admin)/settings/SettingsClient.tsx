@@ -12,8 +12,7 @@ import {
   Save, 
   Loader2, 
   Video, 
-  Image as ImageIcon,
-  Cpu
+  Image as ImageIcon
 } from 'lucide-react';
 
 interface ConfigData {
@@ -22,18 +21,7 @@ interface ConfigData {
   defaultCredits: number;
   imageCreditFloor: number;
   videoCreditFloor: number;
-  disabledModels: string[];
 }
-
-const POPULAR_MODELS = [
-  { id: 'kling-2.6/text-to-video', name: 'Kling 2.6 (Video)', type: 'video' },
-  { id: 'grok-imagine/text-to-video', name: 'Grok Imagine (Video)', type: 'video' },
-  { id: 'bytedance/seedance-1.5-pro', name: 'Seedance 1.5 Pro (Video)', type: 'video' },
-  { id: 'flux/schnell', name: 'Flux Schnell (Image)', type: 'image' },
-  { id: 'midjourney/v6-1', name: 'Midjourney v6.1 (Image)', type: 'image' },
-  { id: 'gpt-5-2', name: 'GPT-5.2 (Chat)', type: 'chat' },
-  { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro (Chat)', type: 'chat' },
-];
 
 export default function SettingsClient({ initialConfig }: { initialConfig: ConfigData }) {
   const router = useRouter();
@@ -43,16 +31,9 @@ export default function SettingsClient({ initialConfig }: { initialConfig: Confi
   const [defaultCredits, setDefaultCredits] = useState<number>(initialConfig.defaultCredits);
   const [imageFloor, setImageFloor] = useState<number>(initialConfig.imageCreditFloor);
   const [videoFloor, setVideoFloor] = useState<number>(initialConfig.videoCreditFloor);
-  const [disabledModels, setDisabledModels] = useState<string[]>(initialConfig.disabledModels || []);
 
   const [saving, setSaving] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ text: string; error?: boolean } | null>(null);
-
-  const toggleModel = (modelId: string) => {
-    setDisabledModels(prev => 
-      prev.includes(modelId) ? prev.filter(m => m !== modelId) : [...prev, modelId]
-    );
-  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +46,6 @@ export default function SettingsClient({ initialConfig }: { initialConfig: Confi
       defaultCredits: Number(defaultCredits) || 0,
       imageCreditFloor: Number(imageFloor) || 40,
       videoCreditFloor: Number(videoFloor) || 80,
-      disabledModels,
     });
 
     setSaving(false);
@@ -222,54 +202,6 @@ export default function SettingsClient({ initialConfig }: { initialConfig: Confi
               <span className="text-xs text-slate-400">credits required</span>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* 4. Model Availability Toggles */}
-      <section className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-9 h-9 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-400">
-            <Cpu className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-semibold text-white">AI Model Availability Toggles</h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Enable or disable specific AI models from being served by the backend proxy.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-          {POPULAR_MODELS.map(model => {
-            const isDisabled = disabledModels.includes(model.id);
-            return (
-              <div 
-                key={model.id}
-                className={`p-3.5 rounded-xl border flex items-center justify-between transition-colors ${
-                  isDisabled 
-                    ? 'bg-rose-500/5 border-rose-500/20 text-slate-400' 
-                    : 'bg-slate-800/40 border-slate-700/50 text-white'
-                }`}
-              >
-                <div>
-                  <div className="text-xs font-semibold">{model.name}</div>
-                  <div className="text-[11px] font-mono text-slate-400 truncate max-w-[200px]">{model.id}</div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => toggleModel(model.id)}
-                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                    isDisabled
-                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30'
-                      : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'
-                  }`}
-                >
-                  {isDisabled ? 'Disabled' : 'Enabled'}
-                </button>
-              </div>
-            );
-          })}
         </div>
       </section>
 
