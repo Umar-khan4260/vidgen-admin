@@ -1,0 +1,21 @@
+services:
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: vidgen-admin:latest
+    container_name: vidgen-admin
+    init: true
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    # Runtime secrets/config. Expected keys:
+    #   FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
+    #   ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_SESSION_SECRET
+    #   KIE_API_KEY (optional, dashboard platform credits)
+    env_file:
+      - .env.local
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
