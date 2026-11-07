@@ -10,20 +10,18 @@ export async function updateSystemConfigAction(data: {
   defaultCredits: number;
   imageCreditFloor?: number;
   videoCreditFloor?: number;
-  disabledModels?: string[];
 }) {
   try {
     await requireAdmin();
     const configRef = adminDb.collection('admin').doc('config');
 
-    const updatePayload: Record<string, any> = {
+    const updatePayload: Record<string, unknown> = {
       maintenanceMode: Boolean(data.maintenanceMode),
       maintenanceMessage: data.maintenanceMessage?.trim() || 'The app is currently undergoing scheduled maintenance. Please check back shortly.',
       defaultCredits: Math.max(0, Number(data.defaultCredits) || 0),
       freeCredits: Math.max(0, Number(data.defaultCredits) || 0), // mirror for backwards compatibility
       imageCreditFloor: Math.max(0, Number(data.imageCreditFloor) || 40),
       videoCreditFloor: Math.max(0, Number(data.videoCreditFloor) || 80),
-      disabledModels: data.disabledModels || [],
       updatedAt: FieldValue.serverTimestamp(),
     };
 
@@ -34,8 +32,11 @@ export async function updateSystemConfigAction(data: {
     revalidatePath('/users');
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error('updateSystemConfigAction error:', error);
-    return { success: false, error: error.message || 'Failed to update system settings' };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to update system settings',
+    };
   }
 }

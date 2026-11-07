@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutDashboard, Users, Settings, Sparkles, Activity, LogOut, Calendar, History } from "lucide-react";
+import { LayoutDashboard, Users, Settings, Sparkles, Activity, LogOut, Calendar, History, Cpu } from "lucide-react";
 import { logoutAction } from "./actions";
 
 /** Shell for all authenticated admin pages: fixed sidebar + internally
@@ -56,6 +56,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               <Calendar className="w-4 h-4 text-slate-400 group-hover:text-indigo-400 transition-colors" />
               <span>Plan Management</span>
+            </Link>
+
+            <Link
+              href="/models"
+              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/70 transition-all group"
+            >
+              <Cpu className="w-4 h-4 text-slate-400 group-hover:text-indigo-400 transition-colors" />
+              <span>Model Management</span>
             </Link>
 
             <Link
