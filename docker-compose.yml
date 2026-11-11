@@ -1,21 +1,66 @@
+# VidGen AI Admin — Docker Compose (single configuration file)
+#
+# No Dockerfile is used. Everything is defined here:
+#   - Base image: node:20-alpine
+#   - Source code is mounted from the host (dev-friendly, no rebuild on edits)
+#   - Port is read from .env.local via ${PORT:-3000}
+#   - Install deps, build, and start in one command
+#
+# Usage:
+#   docker compose up -d
+#
+# Change port:
+#   Edit PORT in .env.local, then: docker compose up -d
+
 services:
   admin:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: vidgen-admin:latest
+    image: node:22-alpine
     container_name: vidgen-admin
     init: true
     restart: unless-stopped
+    working_dir: /app
+
+    # Port: host:container, read from .env.local
     ports:
-      - "3000:3000"
-    # Runtime secrets/config. Expected keys:
-    #   FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
-    #   ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_SESSION_SECRET
-    #   KIE_API_KEY (optional, dashboard platform credits)
+      - "${PORT:-3000}:${PORT:-3000}"
+
+    # Load all variables from .env.local at runtime
     env_file:
-      - .env.local
+      - path: .env.local
+        required: false
+
     environment:
-      NODE_ENV: production
-      PORT: "3000"
-      HOSTNAME: 0.0.0.0
+      - NODE_ENV=production
+      - PORT=${PORT:-3000}
+      - HOSTNAME=0.0.0.0
+
+    # Mount only source code (NOT node_modules from host)
+    volumes:
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - ./app:/app/app
+      - ./lib:/app/lib
+      - ./public:/app/public
+      - ./next.config.ts:/app/next.config.ts
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./next-env.d.ts:/app/next-env.d.ts
+      - ./middleware.ts:/app/middleware.ts
+      - ./.env.local:/app/.env.local
+      - /app/node_modules
+
+    # Install all deps (including devDeps like typescript and tailwind), build, start
+    command: sh -c "npm install --include=dev --no-audit --no-fund && npm run build && npm start"
+
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider",
+             "http://127.0.0.1:${PORT:-3000}/login"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+    networks:
+      - vidgen-admin
+
+networks:
+  vidgen-admin:
+    driver: bridge
